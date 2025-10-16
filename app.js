@@ -896,19 +896,11 @@ async function downloadPDF() {
     try {
         const element = document.getElementById("cvPreview");
 
-        element.style.display = 'none';
-        element.offsetHeight; // no-op
-        element.style.display = '';
-
         const canvas = await html2canvas(element, {
             scale: 3,
             useCORS: true,
             logging: false,
-            backgroundColor: "#ffffff",
-            scrollX: -window.scrollX,
-            scrollY: -window.scrollY,
-            windowWidth: document.documentElement.offsetWidth,
-            windowHeight: document.documentElement.offsetHeight
+            backgroundColor: "#ffffff"
         });
 
         const imgData = canvas.toDataURL("image/png", 1.0);
