@@ -145,7 +145,7 @@ let cvData = {
 function loadExampleData() {
     Swal.fire({
         title: '¿Cargar datos de ejemplo?',
-        text: "Esto reemplazará tus datos actuales. ¿Continuar?",
+        text: "Tus datos actuales no se perderán. Podrás restaurarlos con el botón 'Restaurar mi CV'. ¿Continuar?",
         icon: 'question',
         showCancelButton: true,
         confirmButtonColor: '#2563eb',
@@ -156,10 +156,18 @@ function loadExampleData() {
         if (result.isConfirmed) {
             cvData = JSON.parse(JSON.stringify(exampleData));
             populateForm();
-            saveAndRender();
+            updatePreview();
+            $("#restoreCV").show();
             showSuccess("Datos de ejemplo cargados.");
         }
     });
+}
+
+function restoreCV() {
+    loadFromLocalStorage();
+    saveAndRender();
+    $("#restoreCV").hide();
+    showSuccess("Tu CV ha sido restaurado.");
 }
 
 // Inicialización
@@ -325,6 +333,7 @@ function setupEventListeners() {
     // Acciones principales
     $("#downloadPDF").on("click", downloadPDF);
     $("#loadExample").on("click", loadExampleData);
+    $("#restoreCV").on("click", restoreCV);
     $("#clearAll").on("click", clearAll);
 
     // Mobile navigation
