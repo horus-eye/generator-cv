@@ -26,30 +26,35 @@
                 <div class="form-section">
                     <div class="p-4">
                         <h1 class="text-center mb-4">
-                            <i class="fas fa-file-alt"></i> Generador de CV
+                            <i class="fas fa-file-alt"></i> <span data-translate="main_title">Generador de CV</span>
                         </h1>
+
+                        <div class="language-switcher btn-group mb-4 w-100">
+                            <button type="button" class="btn btn-outline-primary" id="lang-es">Español</button>
+                            <button type="button" class="btn btn-outline-primary" id="lang-en">English</button>
+                        </div>
 
                         <div class="card mb-4">
                             <div class="card-body">
-                                <h5 class="card-title">
+                                <h5 class="card-title" data-translate="cv_style">
                                     <i class="fas fa-palette"></i> Estilo de CV
                                 </h5>
                                 <div class="btn-group w-100" role="group">
                                     <input type="radio" class="btn-check" name="cvStyle" id="styleMinimal" value="minimal"
                                         checked>
-                                    <label class="btn btn-outline-primary" for="styleMinimal">
+                                    <label class="btn btn-outline-primary" for="styleMinimal" data-translate="style_minimalist">
                                         <i class="fas fa-ruler-combined"></i> Minimalista
                                     </label>
 
                                     <input type="radio" class="btn-check" name="cvStyle" id="styleDashboard"
                                         value="dashboard">
-                                    <label class="btn btn-outline-primary" for="styleDashboard">
+                                    <label class="btn btn-outline-primary" for="styleDashboard" data-translate="style_dashboard">
                                         <i class="fas fa-th-large"></i> Dashboard
                                     </label>
                                 </div>
 
                                 <div class="mt-3">
-                                    <label class="form-label small mb-1">Progreso del CV</label>
+                                    <label class="form-label small mb-1" data-translate="cv_progress">Progreso del CV</label>
                                     <div class="progress" style="height: 20px;">
                                         <div id="cv-progress-bar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
                                     </div>
@@ -61,37 +66,37 @@
                             <li class="nav-item" role="presentation">
                                 <button class="nav-link active" id="personal-tab" data-bs-toggle="tab"
                                     data-bs-target="#personal" type="button">
-                                    <i class="fas fa-user"></i> <span class="d-none d-sm-inline">Personal</span>
+                                    <i class="fas fa-user"></i> <span class="d-none d-sm-inline" data-translate="personal_tab">Personal</span>
                                 </button>
                             </li>
                             <li class="nav-item" role="presentation">
                                 <button class="nav-link" id="experience-tab" data-bs-toggle="tab"
                                     data-bs-target="#experience" type="button">
-                                    <i class="fas fa-briefcase"></i> <span class="d-none d-sm-inline">Experiencia</span>
+                                    <i class="fas fa-briefcase"></i> <span class="d-none d-sm-inline" data-translate="experience_tab">Experiencia</span>
                                 </button>
                             </li>
                             <li class="nav-item" role="presentation">
                                 <button class="nav-link" id="education-tab" data-bs-toggle="tab" data-bs-target="#education"
                                     type="button">
-                                    <i class="fas fa-graduation-cap"></i> <span class="d-none d-sm-inline">Educación</span>
+                                    <i class="fas fa-graduation-cap"></i> <span class="d-none d-sm-inline" data-translate="education_tab">Educación</span>
                                 </button>
                             </li>
                             <li class="nav-item" role="presentation">
                                 <button class="nav-link" id="skills-tab" data-bs-toggle="tab" data-bs-target="#skills"
                                     type="button">
-                                    <i class="fas fa-code"></i> <span class="d-none d-sm-inline">Habilidades</span>
+                                    <i class="fas fa-code"></i> <span class="d-none d-sm-inline" data-translate="skills_tab">Habilidades</span>
                                 </button>
                             </li>
                             <li class="nav-item" role="presentation">
                                 <button class="nav-link" id="languages-tab" data-bs-toggle="tab" data-bs-target="#languages"
                                     type="button">
-                                    <i class="fas fa-language"></i> <span class="d-none d-sm-inline">Idiomas</span>
+                                    <i class="fas fa-language"></i> <span class="d-none d-sm-inline" data-translate="languages_tab">Idiomas</span>
                                 </button>
                             </li>
                             <li class="nav-item" role="presentation">
                                 <button class="nav-link" id="certs-tab" data-bs-toggle="tab" data-bs-target="#certs"
                                     type="button">
-                                    <i class="fas fa-certificate"></i> <span class="d-none d-sm-inline">Certif.</span>
+                                    <i class="fas fa-certificate"></i> <span class="d-none d-sm-inline" data-translate="certs_tab">Certif.</span>
                                 </button>
                             </li>
                         </ul>
@@ -101,11 +106,11 @@
                                 <div class="card">
                                     <div class="card-body">
                                         <div class="mb-3">
-                                            <label class="form-label">Nombre Completo *</label>
+                                            <label class="form-label" data-translate="full_name_label">Nombre Completo *</label>
                                             <div class="input-group">
                                                 <span class="input-group-text"><i class="fas fa-user"></i></span>
                                                 <input type="text" class="form-control" id="fullName"
-                                                    placeholder="Juan Pérez">
+                                                    placeholder="Juan Pérez" data-translate-placeholder="full_name_placeholder">
                                                 <button class="btn btn-outline-secondary clear-btn" type="button"
                                                     data-field="fullName">
                                                     <i class="fas fa-times"></i>
@@ -114,10 +119,10 @@
                                         </div>
 
                                         <div class="mb-3">
-                                            <label class="form-label">Puesto Deseado</label>
+                                            <label class="form-label" data-translate="desired_position_label">Puesto Deseado</label>
                                             <div class="input-group">
                                                 <span class="input-group-text"><i class="fas fa-briefcase"></i></span>
-                                                <input type="text" class="form-control" id="position" placeholder="Desarrollador Full-Stack">
+                                                <input type="text" class="form-control" id="position" placeholder="Desarrollador Full-Stack" data-translate-placeholder="desired_position_placeholder">
                                                 <button class="btn btn-outline-secondary clear-btn" type="button" data-field="position">
                                                     <i class="fas fa-times"></i>
                                                 </button>
@@ -125,11 +130,11 @@
                                         </div>
 
                                         <div class="mb-3">
-                                            <label class="form-label">Email *</label>
+                                            <label class="form-label" data-translate="email_label">Email *</label>
                                             <div class="input-group">
                                                 <span class="input-group-text"><i class="fas fa-envelope"></i></span>
                                                 <input type="email" class="form-control" id="email"
-                                                    placeholder="juan@ejemplo.com">
+                                                    placeholder="juan@ejemplo.com" data-translate-placeholder="email_placeholder">
                                                 <button class="btn btn-outline-secondary clear-btn" type="button"
                                                     data-field="email">
                                                     <i class="fas fa-times"></i>
@@ -138,11 +143,11 @@
                                         </div>
 
                                         <div class="mb-3">
-                                            <label class="form-label">Teléfono *</label>
+                                            <label class="form-label" data-translate="phone_label">Teléfono *</label>
                                             <div class="input-group">
                                                 <span class="input-group-text"><i class="fas fa-phone"></i></span>
                                                 <input type="tel" class="form-control" id="phone"
-                                                    placeholder="+1 234 567 8900">
+                                                    placeholder="+1 234 567 8900" data-translate-placeholder="phone_placeholder">
                                                 <button class="btn btn-outline-secondary clear-btn" type="button"
                                                     data-field="phone">
                                                     <i class="fas fa-times"></i>
@@ -151,11 +156,11 @@
                                         </div>
 
                                         <div class="mb-3">
-                                            <label class="form-label">Ubicación</label>
+                                            <label class="form-label" data-translate="location_label">Ubicación</label>
                                             <div class="input-group">
                                                 <span class="input-group-text"><i class="fas fa-map-marker-alt"></i></span>
                                                 <input type="text" class="form-control" id="location"
-                                                    placeholder="Ciudad, País">
+                                                    placeholder="Ciudad, País" data-translate-placeholder="location_placeholder">
                                                 <button class="btn btn-outline-secondary clear-btn" type="button"
                                                     data-field="location">
                                                     <i class="fas fa-times"></i>
@@ -164,11 +169,11 @@
                                         </div>
 
                                         <div class="mb-3">
-                                            <label class="form-label">LinkedIn</label>
+                                            <label class="form-label" data-translate="linkedin_label">LinkedIn</label>
                                             <div class="input-group">
                                                 <span class="input-group-text"><i class="fab fa-linkedin"></i></span>
                                                 <input type="url" class="form-control" id="linkedin"
-                                                    placeholder="https://linkedin.com/in/usuario">
+                                                    placeholder="https://linkedin.com/in/usuario" data-translate-placeholder="linkedin_placeholder">
                                                 <button class="btn btn-outline-secondary clear-btn" type="button"
                                                     data-field="linkedin">
                                                     <i class="fas fa-times"></i>
@@ -177,11 +182,11 @@
                                         </div>
 
                                         <div class="mb-3">
-                                            <label class="form-label">Sitio Web</label>
+                                            <label class="form-label" data-translate="website_label">Sitio Web</label>
                                             <div class="input-group">
                                                 <span class="input-group-text"><i class="fas fa-globe"></i></span>
                                                 <input type="url" class="form-control" id="website"
-                                                    placeholder="https://miportfolio.com">
+                                                    placeholder="https://miportfolio.com" data-translate-placeholder="website_placeholder">
                                                 <button class="btn btn-outline-secondary clear-btn" type="button"
                                                     data-field="website">
                                                     <i class="fas fa-times"></i>
@@ -190,10 +195,15 @@
                                         </div>
 
                                         <div class="mb-3">
-                                            <label class="form-label">Resumen Profesional</label>
+                                            <label class="form-label" data-translate="summary_label">Resumen Profesional</label>
                                             <textarea class="form-control" id="summary" rows="4"
-                                                placeholder="Breve descripción de tu perfil profesional..."></textarea>
+                                                placeholder="Breve descripción de tu perfil profesional..." data-translate-placeholder="summary_placeholder"></textarea>
                                         </div>
+                                    </div>
+                                    <div class="card-footer bg-light">
+                                        <button type="button" class="btn btn-secondary w-100 save-progress-btn">
+                                            <i class="fas fa-save me-2"></i><span data-translate="save_progress_button">Guardar Progreso</span>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -201,51 +211,56 @@
                             <div class="tab-pane fade" id="experience" role="tabpanel">
                                 <div class="card">
                                     <div class="card-body">
-                                        <h5 class="card-title">Agregar Experiencia</h5>
+                                        <h5 class="card-title" data-translate="add_experience_title">Agregar Experiencia</h5>
 
                                         <div class="mb-3">
-                                            <label class="form-label">Puesto</label>
+                                            <label class="form-label" data-translate="position_label">Puesto</label>
                                             <input type="text" class="form-control" id="expPosition"
-                                                placeholder="Desarrollador Full Stack">
+                                                placeholder="Desarrollador Full Stack" data-translate-placeholder="position_placeholder">
                                         </div>
 
                                         <div class="mb-3">
-                                            <label class="form-label">Empresa</label>
+                                            <label class="form-label" data-translate="company_label">Empresa</label>
                                             <input type="text" class="form-control" id="expCompany"
-                                                placeholder="Tech Company Inc.">
+                                                placeholder="Tech Company Inc." data-translate-placeholder="company_placeholder">
                                         </div>
 
                                         <div class="row">
                                             <div class="col-md-6 mb-3">
-                                                <label class="form-label">Fecha Inicio</label>
+                                                <label class="form-label" data-translate="start_date_label">Fecha Inicio</label>
                                                 <input type="month" class="form-control" id="expStartDate">
                                             </div>
                                             <div class="col-md-6 mb-3">
-                                                <label class="form-label">Fecha Fin</label>
+                                                <label class="form-label" data-translate="end_date_label">Fecha Fin</label>
                                                 <input type="month" class="form-control" id="expEndDate">
                                             </div>
                                         </div>
 
                                         <div class="mb-3 form-check">
                                             <input type="checkbox" class="form-check-input" id="expCurrent">
-                                            <label class="form-check-label" for="expCurrent">
+                                            <label class="form-check-label" for="expCurrent" data-translate="current_job_label">
                                                 Trabajo actual
                                             </label>
                                         </div>
 
                                         <div class="mb-3">
-                                            <label class="form-label">Descripción</label>
+                                            <label class="form-label" data-translate="description_label">Descripción</label>
                                             <textarea class="form-control" id="expDescription" rows="3"
-                                                placeholder="Describe tus responsabilidades y logros..."></textarea>
+                                                placeholder="Describe tus responsabilidades y logros..." data-translate-placeholder="description_placeholder"></textarea>
                                         </div>
 
                                         <button type="button" class="btn btn-primary w-100" id="addExperience">
-                                            <i class="fas fa-plus"></i> Agregar Experiencia
+                                            <i class="fas fa-plus"></i> <span data-translate="add_experience_button">Agregar Experiencia</span>
                                         </button>
 
                                         <hr class="my-4">
 
                                         <div id="experienceList"></div>
+                                    </div>
+                                    <div class="card-footer bg-light">
+                                        <button type="button" class="btn btn-secondary w-100 save-progress-btn">
+                                            <i class="fas fa-save me-2"></i><span data-translate="save_progress_button">Guardar Progreso</span>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -253,45 +268,60 @@
                             <div class="tab-pane fade" id="education" role="tabpanel">
                                 <div class="card">
                                     <div class="card-body">
-                                        <h5 class="card-title">Agregar Educación</h5>
+                                        <h5 class="card-title" data-translate="add_education_title">Agregar Educación</h5>
 
                                         <div class="mb-3">
-                                            <label class="form-label">Título</label>
-                                            <input type="text" class="form-control" id="eduDegree"
-                                                placeholder="Licenciatura en Informática">
+                                            <label class="form-label" data-translate="degree_label">Título</label>
+                                            <div class="input-group">
+                                                <select class="form-select" id="eduDegreeSelect" style="max-width: 180px;">
+                                                    <option value="" data-translate="select_prefix_placeholder">Seleccionar prefijo...</option>
+                                                    <option value="Licenciatura en" data-translate="degree_prefix_lic">Licenciatura en</option>
+                                                    <option value="Ingeniería en" data-translate="degree_prefix_ing">Ingeniería en</option>
+                                                    <option value="Técnico en" data-translate="degree_prefix_tec">Técnico en</option>
+                                                    <option value="Maestría en" data-translate="degree_prefix_mae">Maestría en</option>
+                                                    <option value="Doctorado en" data-translate="degree_prefix_doc">Doctorado en</option>
+                                                    <option value="Otro" data-translate="degree_prefix_otro">Otro (especificar)</option>
+                                                </select>
+                                                <input type="text" class="form-control" id="eduDegree" placeholder="...Informática" data-translate-placeholder="degree_placeholder">
+                                            </div>
                                         </div>
 
                                         <div class="mb-3">
-                                            <label class="form-label">Institución</label>
+                                            <label class="form-label" data-translate="institution_label">Institución</label>
                                             <input type="text" class="form-control" id="eduInstitution"
-                                                placeholder="Universidad Nacional">
+                                                placeholder="Universidad Nacional" data-translate-placeholder="institution_placeholder">
                                         </div>
 
                                         <div class="row">
                                             <div class="col-md-6 mb-3">
-                                                <label class="form-label">Fecha Inicio</label>
+                                                <label class="form-label" data-translate="start_date_label">Fecha Inicio</label>
                                                 <input type="month" class="form-control" id="eduStartDate">
                                             </div>
                                             <div class="col-md-6 mb-3">
-                                                <label class="form-label">Fecha Fin</label>
+                                                <label class="form-label" data-translate="end_date_label">Fecha Fin</label>
                                                 <input type="month" class="form-control" id="eduEndDate">
                                             </div>
                                         </div>
 
                                         <div class="mb-3 form-check">
                                             <input type="checkbox" class="form-check-input" id="eduCurrent">
-                                            <label class="form-check-label" for="eduCurrent">
+                                            <label class="form-check-label" for="eduCurrent" data-translate="currently_studying_label">
                                                 Estudiando actualmente
                                             </label>
                                         </div>
 
                                         <button type="button" class="btn btn-primary w-100" id="addEducation">
-                                            <i class="fas fa-plus"></i> Agregar Educación
+                                            <i class="fas fa-plus"></i> <span data-translate="add_education_button">Agregar Educación</span>
                                         </button>
 
                                         <hr class="my-4">
 
                                         <div id="educationList"></div>
+                                    </div>
+                                    <div class="card-footer bg-light">
+                                        <button type="button" class="btn btn-secondary w-100 save-progress-btn">
+                                            <i class="fas fa-save me-2"></i><span data-translate="save_progress_button">Guardar Progreso</span>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -299,25 +329,30 @@
                             <div class="tab-pane fade" id="skills" role="tabpanel">
                                 <div class="card">
                                     <div class="card-body">
-                                        <h5 class="card-title">Habilidades Técnicas</h5>
-                                        <p class="text-muted small">Selecciona tus habilidades técnicas</p>
+                                        <h5 class="card-title" data-translate="technical_skills_title">Habilidades Técnicas</h5>
+                                        <p class="text-muted small" data-translate="technical_skills_subtitle">Selecciona tus habilidades técnicas</p>
 
                                         <div class="mb-3">
                                             <input type="text" class="form-control mb-2" id="searchTechnical"
-                                                placeholder="Buscar habilidad...">
+                                                placeholder="Buscar habilidad..." data-translate-placeholder="search_skill_placeholder">
                                             <div id="technicalSkillsGrid" class="skills-grid"></div>
                                         </div>
 
                                         <hr class="my-4">
 
-                                        <h5 class="card-title">Habilidades Blandas</h5>
-                                        <p class="text-muted small">Selecciona tus habilidades blandas</p>
+                                        <h5 class="card-title" data-translate="soft_skills_title">Habilidades Blandas</h5>
+                                        <p class="text-muted small" data-translate="soft_skills_subtitle">Selecciona tus habilidades blandas</p>
 
                                         <div class="mb-3">
                                             <input type="text" class="form-control mb-2" id="searchSoft"
-                                                placeholder="Buscar habilidad...">
+                                                placeholder="Buscar habilidad..." data-translate-placeholder="search_skill_placeholder">
                                             <div id="softSkillsGrid" class="skills-grid"></div>
                                         </div>
+                                    </div>
+                                    <div class="card-footer bg-light">
+                                        <button type="button" class="btn btn-secondary w-100 save-progress-btn">
+                                            <i class="fas fa-save me-2"></i><span data-translate="save_progress_button">Guardar Progreso</span>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -325,17 +360,34 @@
                             <div class="tab-pane fade" id="languages" role="tabpanel">
                                 <div class="card">
                                     <div class="card-body">
-                                        <h5 class="card-title">Agregar Idioma</h5>
+                                        <h5 class="card-title" data-translate="add_language_title">Agregar Idioma</h5>
 
                                         <div class="mb-3">
-                                            <label class="form-label">Idioma</label>
-                                            <input type="text" class="form-control" id="langName" placeholder="Inglés">
+                                            <label class="form-label" data-translate="language_label">Idioma</label>
+                                            <select class="form-select" id="langNameSelect">
+                                                <option value="" data-translate="select_language_placeholder">Seleccionar idioma</option>
+                                                <option value="Español">Español</option>
+                                                <option value="Inglés">Inglés</option>
+                                                <option value="Francés">Francés</option>
+                                                <option value="Alemán">Alemán</option>
+                                                <option value="Portugués">Portugués</option>
+                                                <option value="Italiano">Italiano</option>
+                                                <option value="Chino mandarín">Chino mandarín</option>
+                                                <option value="Japonés">Japonés</option>
+                                                <option value="Ruso">Ruso</option>
+                                                <option value="Árabe">Árabe</option>
+                                                <option value="Otro">Otro</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3" id="langNameOtherWrapper" style="display: none;">
+                                            <label class="form-label" data-translate="other_language_placeholder">Especificar Idioma</label>
+                                            <input type="text" class="form-control" id="langName" placeholder="Ej: Neerlandés" data-translate-placeholder="other_language_placeholder">
                                         </div>
 
                                         <div class="mb-3">
-                                            <label class="form-label">Nivel</label>
+                                            <label class="form-label" data-translate="level_label">Nivel</label>
                                             <select class="form-select" id="langLevel">
-                                                <option value="">Seleccionar nivel</option>
+                                                <option value="" data-translate="select_level_placeholder">Seleccionar nivel</option>
                                                 <option value="Básico">Básico</option>
                                                 <option value="Intermedio">Intermedio</option>
                                                 <option value="Avanzado">Avanzado</option>
@@ -350,12 +402,17 @@
                                         </div>
 
                                         <button type="button" class="btn btn-primary w-100" id="addLanguage">
-                                            <i class="fas fa-plus"></i> Agregar Idioma
+                                            <i class="fas fa-plus"></i> <span data-translate="add_language_button">Agregar Idioma</span>
                                         </button>
 
                                         <hr class="my-4">
 
                                         <div id="languagesList"></div>
+                                    </div>
+                                    <div class="card-footer bg-light">
+                                        <button type="button" class="btn btn-secondary w-100 save-progress-btn">
+                                            <i class="fas fa-save me-2"></i><span data-translate="save_progress_button">Guardar Progreso</span>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -363,37 +420,42 @@
                             <div class="tab-pane fade" id="certs" role="tabpanel">
                                 <div class="card">
                                     <div class="card-body">
-                                        <h5 class="card-title">Agregar Certificación</h5>
+                                        <h5 class="card-title" data-translate="add_certification_title">Agregar Certificación</h5>
 
                                         <div class="mb-3">
-                                            <label class="form-label">Nombre de la Certificación</label>
+                                            <label class="form-label" data-translate="certification_name_label">Nombre de la Certificación</label>
                                             <input type="text" class="form-control" id="certName"
-                                                placeholder="AWS Certified Developer">
+                                                placeholder="AWS Certified Developer" data-translate-placeholder="certification_name_placeholder">
                                         </div>
 
                                         <div class="mb-3">
-                                            <label class="form-label">Organización</label>
+                                            <label class="form-label" data-translate="organization_label">Organización</label>
                                             <input type="text" class="form-control" id="certOrg"
-                                                placeholder="Amazon Web Services">
+                                                placeholder="Amazon Web Services" data-translate-placeholder="organization_placeholder">
                                         </div>
 
                                         <div class="mb-3">
-                                            <label class="form-label">Fecha de Obtención</label>
+                                            <label class="form-label" data-translate="date_obtained_label">Fecha de Obtención</label>
                                             <input type="month" class="form-control" id="certDate">
                                         </div>
 
                                         <div class="mb-3">
-                                            <label class="form-label">URL de Verificación</label>
-                                            <input type="url" class="form-control" id="certUrl" placeholder="https://...">
+                                            <label class="form-label" data-translate="verification_url_label">URL de Verificación</label>
+                                            <input type="url" class="form-control" id="certUrl" placeholder="https://..." data-translate-placeholder="verification_url_placeholder">
                                         </div>
 
                                         <button type="button" class="btn btn-primary w-100" id="addCertification">
-                                            <i class="fas fa-plus"></i> Agregar Certificación
+                                            <i class="fas fa-plus"></i> <span data-translate="add_certification_button">Agregar Certificación</span>
                                         </button>
 
                                         <hr class="my-4">
 
                                         <div id="certificationsList"></div>
+                                    </div>
+                                    <div class="card-footer bg-light">
+                                        <button type="button" class="btn btn-secondary w-100 save-progress-btn">
+                                            <i class="fas fa-save me-2"></i><span data-translate="save_progress_button">Guardar Progreso</span>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -401,17 +463,17 @@
 
                         <div class="mt-4 d-grid gap-2">
                             <button type="button" class="btn btn-success btn-lg" id="downloadPDF">
-                                <i class="fas fa-download"></i> Descargar PDF
+                                <i class="fas fa-download"></i> <span data-translate="download_pdf_button">Descargar PDF</span>
                             </button>
                             <div class="btn-group">
                                 <button type="button" class="btn btn-secondary" id="loadExample">
-                                    <i class="fas fa-magic"></i> Cargar Ejemplo
+                                    <i class="fas fa-magic"></i> <span data-translate="load_example_button">Cargar Ejemplo</span>
                                 </button>
                                 <button type="button" class="btn btn-info" id="restoreCV" style="display: none;">
-                                    <i class="fas fa-undo"></i> Restaurar mi CV
+                                    <i class="fas fa-undo"></i> <span data-translate="restore_cv_button">Restaurar mi CV</span>
                                 </button>
                                 <button type="button" class="btn btn-danger" id="clearAll">
-                                    <i class="fas fa-trash"></i> Limpiar Todo
+                                    <i class="fas fa-trash"></i> <span data-translate="clear_all_button">Limpiar Todo</span>
                                 </button>
                             </div>
                         </div>
@@ -423,7 +485,7 @@
                 <div class="preview-section">
                     <div class="preview-container">
                         <div class="preview-header">
-                            <h5><i class="fas fa-eye"></i> Vista Previa</h5>
+                            <h5><i class="fas fa-eye"></i> <span data-translate="preview_title">Vista Previa</span></h5>
                         </div>
                         <div id="cvPreview" class="cv-preview"></div>
                     </div>
@@ -433,8 +495,8 @@
     </div>
 
     <div class="mobile-nav d-lg-none">
-        <button class="btn btn-primary active" id="mobile-nav-form"><i class="fas fa-edit"></i> Formulario</button>
-        <button class="btn btn-primary" id="mobile-nav-preview"><i class="fas fa-eye"></i> Vista Previa</button>
+        <button class="btn btn-primary active" id="mobile-nav-form"><i class="fas fa-edit"></i> <span data-translate="form_mobile_nav">Formulario</span></button>
+        <button class="btn btn-primary" id="mobile-nav-preview"><i class="fas fa-eye"></i> <span data-translate="preview_mobile_nav">Vista Previa</span></button>
     </div>
 
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>

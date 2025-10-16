@@ -1,3 +1,39 @@
+// Internacionalización (i18n)
+let translations = {};
+let currentLang = "es";
+
+async function loadLanguage(lang) {
+    try {
+        const response = await fetch(`languages/${lang}.json`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        translations = await response.json();
+        currentLang = lang;
+        localStorage.setItem("preferredLang", lang);
+        updateUIText();
+        updatePreview(); // Re-render preview with new language
+    } catch (error) {
+        console.error("Could not load language file:", error);
+    }
+}
+
+function updateUIText() {
+    $('[data-translate]').each(function () {
+        const key = $(this).data('translate');
+        if (translations[key]) {
+            $(this).html(translations[key]);
+        }
+    });
+
+    $('[data-translate-placeholder]').each(function () {
+        const key = $(this).data('translate-placeholder');
+        if (translations[key]) {
+            $(this).attr('placeholder', translations[key]);
+        }
+    });
+}
+
 // Este archivo utiliza librerías globales cargadas a través de etiquetas <script> en index.html
 // (jQuery, SweetAlert2, html2canvas, jsPDF)
 
@@ -142,23 +178,28 @@ let cvData = {
     style: "minimal",
 }
 
+let editingState = {
+    id: null,
+    type: null,
+}
+
 function loadExampleData() {
     Swal.fire({
-        title: '¿Cargar datos de ejemplo?',
-        text: "Tus datos actuales no se perderán. Podrás restaurarlos con el botón 'Restaurar mi CV'. ¿Continuar?",
+        title: translations.confirm_load_example_title || '¿Cargar datos de ejemplo?',
+        text: translations.confirm_load_example_text || "Tus datos actuales no se perderán. Podrás restaurarlos con el botón 'Restaurar mi CV'. ¿Continuar?",
         icon: 'question',
         showCancelButton: true,
         confirmButtonColor: '#2563eb',
         cancelButtonColor: '#64748b',
-        confirmButtonText: 'Sí, cargar',
-        cancelButtonText: 'Cancelar'
+        confirmButtonText: translations.confirm_button_yes || 'Sí, cargar',
+        cancelButtonText: translations.cancel_button || 'Cancelar'
     }).then((result) => {
         if (result.isConfirmed) {
             cvData = JSON.parse(JSON.stringify(exampleData));
             populateForm();
             updatePreview();
             $("#restoreCV").show();
-            showSuccess("Datos de ejemplo cargados.");
+            showSuccess(translations.example_data_loaded || "Datos de ejemplo cargados.");
         }
     });
 }
@@ -167,16 +208,19 @@ function restoreCV() {
     loadFromLocalStorage();
     saveAndRender();
     $("#restoreCV").hide();
-    showSuccess("Tu CV ha sido restaurado.");
+    showSuccess(translations.cv_restored || "Tu CV ha sido restaurado.");
 }
 
 // Inicialización
 $(document).ready(() => {
-    loadFromLocalStorage()
-    initializeSkillsGrid()
-    setupEventListeners()
-    updatePreview()
-    updateProgressBar()
+    const preferredLang = localStorage.getItem("preferredLang") || "es";
+    loadLanguage(preferredLang).then(() => {
+        loadFromLocalStorage();
+        initializeSkillsGrid();
+        setupEventListeners();
+        updatePreview();
+        updateProgressBar();
+    });
 })
 
 // Cargar datos del LocalStorage
@@ -290,13 +334,50 @@ function setupEventListeners() {
     $("#addLanguage").on("click", addLanguage);
     $("#addCertification").on("click", addCertification);
 
-    // Delegación de eventos para eliminar elementos de las listas
+    // Delegación de eventos para eliminar y editar
     $(document).on("click", ".btn-remove-item", function () {
         const id = parseInt($(this).data("id"), 10);
         const type = $(this).data("type");
         const title = $(this).data("title");
         removeItem(type, id, title);
     });
+
+    $(document).on("click", ".btn-edit-item", function () {
+        const id = parseInt($(this).data("id"), 10);
+        const type = $(this).data("type");
+        editItem(type, id);
+    });
+
+    $(document).on("click", ".save-progress-btn", function () {
+        saveToLocalStorage();
+        showSuccess("¡Tu progreso ha sido guardado!");
+    });
+
+    $("#eduDegreeSelect").on("change", function () {
+        const selected = $(this).val();
+        const degreeInput = $("#eduDegree");
+        if (selected === "Otro" || selected === "") {
+            degreeInput.val("");
+            degreeInput.attr("placeholder", selected === "Otro" ? "Escribe el título completo" : "...Informática");
+        } else {
+            degreeInput.val(selected + " ");
+            degreeInput.focus();
+        }
+    });
+
+    $("#langNameSelect").on("change", function () {
+        if ($(this).val() === "Otro") {
+            $("#langNameOtherWrapper").show();
+            $("#langName").val("").focus();
+        } else {
+            $("#langNameOtherWrapper").hide();
+            $("#langName").val($(this).val());
+        }
+    });
+
+    $("#lang-es").on("click", () => loadLanguage("es"));
+    $("#lang-en").on("click", () => loadLanguage("en"));
+
 
     // Habilidades (click)
     $(document).on("click", ".skill-item", function () {
@@ -355,7 +436,7 @@ function setupEventListeners() {
 function showSuccess(message) {
     Swal.fire({
         icon: "success",
-        title: "Éxito",
+        title: translations.success_title || "Éxito",
         text: message,
         timer: 1500,
         showConfirmButton: false,
@@ -365,7 +446,7 @@ function showSuccess(message) {
 function showError(message) {
     Swal.fire({
         icon: "error",
-        title: "Error",
+        title: translations.error_title || "Error",
         text: message,
     })
 }
@@ -384,117 +465,454 @@ function renderAllLists() {
     renderCertificationsList()
 }
 
+// --- Edición Genérica ---
+function editItem(type, id) {
+    const item = cvData[type].find(i => i.id === id);
+    if (!item) return;
+
+    editingState = { id, type };
+
+    // Llenar el formulario correspondiente
+    switch (type) {
+        case 'experience':
+            $("#expPosition").val(item.position);
+            $("#expCompany").val(item.company);
+            $("#expStartDate").val(item.startDate);
+            $("#expDescription").val(item.description);
+            if (item.endDate === "Presente") {
+                $("#expCurrent").prop("checked", true).trigger("change");
+                $("#expEndDate").val("");
+            } else {
+                $("#expCurrent").prop("checked", false).trigger("change");
+                $("#expEndDate").val(item.endDate);
+            }
+            $("#addExperience").html('<i class="fas fa-save"></i> Guardar Cambios').removeClass("btn-primary").addClass("btn-success");
+            break;
+        case 'education':
+            const degree = item.degree;
+            $("#eduDegree").val(degree);
+            $("#eduInstitution").val(item.institution);
+            $("#eduStartDate").val(item.startDate);
+
+            const prefixes = ["Licenciatura en", "Ingeniería en", "Técnico en", "Maestría en", "Doctorado en"];
+            let prefixFound = false;
+            for (const prefix of prefixes) {
+                if (degree.startsWith(prefix)) {
+                    $("#eduDegreeSelect").val(prefix);
+                    prefixFound = true;
+                    break;
+                }
+            }
+            if (!prefixFound && degree) {
+                $("#eduDegreeSelect").val("Otro");
+            } else if (!degree) {
+                $("#eduDegreeSelect").val("");
+            }
+
+
+            if (item.endDate === "Presente") {
+                $("#eduCurrent").prop("checked", true).trigger("change");
+                $("#expEndDate").val("");
+            } else {
+                $("#eduCurrent").prop("checked", false).trigger("change");
+                $("#eduEndDate").val(item.endDate);
+            }
+            $("#addEducation").html('<i class="fas fa-save"></i> Guardar Cambios').removeClass("btn-primary").addClass("btn-success");
+            break;
+        case 'languages':
+            const langSelect = $("#langNameSelect");
+            const langName = item.name;
+            if (langSelect.find(`option[value="${langName}"]`).length > 0) {
+                langSelect.val(langName);
+                $("#langNameOtherWrapper").hide();
+                $("#langName").val(langName);
+            } else {
+                langSelect.val("Otro");
+                $("#langNameOtherWrapper").show();
+                $("#langName").val(langName);
+            }
+            $("#langLevel").val(item.level);
+            $("#addLanguage").html('<i class="fas fa-save"></i> Guardar Cambios').removeClass("btn-primary").addClass("btn-success");
+            break;
+        case 'certifications':
+            $("#certName").val(item.name);
+            $("#certOrg").val(item.organization);
+            $("#certDate").val(item.date);
+            $("#certUrl").val(item.url);
+            $("#addCertification").html('<i class="fas fa-save"></i> Guardar Cambios').removeClass("btn-primary").addClass("btn-success");
+            break;
+    }
+}
+
+function resetEditingState(type) {
+    editingState = { id: null, type: null };
+    switch (type) {
+        case 'experience':
+            $("#expPosition, #expCompany, #expStartDate, #expEndDate, #expDescription").val("");
+            $("#expCurrent").prop("checked", false).trigger("change");
+            $("#addExperience").html('<i class="fas fa-plus"></i> Agregar Experiencia').removeClass("btn-success").addClass("btn-primary");
+            break;
+        case 'education':
+            $("#eduDegree, #eduInstitution, #eduStartDate, #eduEndDate").val("");
+            $("#eduDegreeSelect").val("");
+            $("#eduCurrent").prop("checked", false).trigger("change");
+            $("#addEducation").html('<i class="fas fa-plus"></i> Agregar Educación').removeClass("btn-success").addClass("btn-primary");
+            break;
+        case 'languages':
+            $("#langName, #langLevel").val("");
+            $("#langNameSelect").val("");
+            $("#langNameOtherWrapper").hide();
+            $("#addLanguage").html('<i class="fas fa-plus"></i> Agregar Idioma').removeClass("btn-success").addClass("btn-primary");
+            break;
+        case 'certifications':
+            $("#certName, #certOrg, #certDate, #certUrl").val("");
+            $("#addCertification").html('<i class="fas fa-plus"></i> Agregar Certificación').removeClass("btn-success").addClass("btn-primary");
+            break;
+    }
+}
+
 // --- Experiencia ---
 
 function addExperience() {
-    const position = $("#expPosition").val().trim()
-    const company = $("#expCompany").val().trim()
-    const startDate = $("#expStartDate").val()
-    const endDate = $("#expEndDate").val()
-    const current = $("#expCurrent").is(":checked")
-    const description = $("#expDescription").val().trim()
+
+    const position = $("#expPosition").val().trim();
+
+    const company = $("#expCompany").val().trim();
+
+    const startDate = $("#expStartDate").val();
+
+    const endDate = $("#expEndDate").val();
+
+    const current = $("#expCurrent").is(":checked");
+
+    const description = $("#expDescription").val().trim();
+
+
 
     if (!position || !company || !startDate) {
-        showError("Por favor completa los campos obligatorios (Puesto, Empresa, Fecha Inicio)")
-        return
+
+        showError(`${translations.error_fields_required || "Por favor completa los campos obligatorios"} (Puesto, Empresa, Fecha Inicio)`);
+
+        return;
+
     }
+
+
 
     if (!current && !endDate) {
-        showError("Por favor indica la fecha de fin o marca como trabajo actual")
-        return
+
+        showError(translations.error_end_date_required || "Por favor indica la fecha de fin o marca como trabajo actual");
+
+        return;
+
     }
 
-    cvData.experience.push({
-        id: Date.now(),
-        position,
-        company,
-        startDate,
-        endDate: current ? "Presente" : endDate,
-        description,
-    })
 
-    saveAndRender()
-    $("#expPosition, #expCompany, #expStartDate, #expEndDate, #expDescription").val("")
-    $("#expCurrent").prop("checked", false).trigger("change")
-    showSuccess("Experiencia agregada correctamente")
+
+    const newExperience = {
+
+        id: editingState.id && editingState.type === 'experience' ? editingState.id : Date.now(),
+
+        position,
+
+        company,
+
+        startDate,
+
+        endDate: current ? "Presente" : endDate,
+
+        description,
+
+    };
+
+
+
+    if (editingState.id && editingState.type === 'experience') {
+
+        // Actualizar
+
+        const index = cvData.experience.findIndex(item => item.id === editingState.id);
+
+        if (index > -1) {
+
+            cvData.experience[index] = newExperience;
+
+            showSuccess(translations.experience_updated || "Experiencia actualizada correctamente");
+
+        }
+
+    } else {
+
+        // Agregar
+
+        cvData.experience.push(newExperience);
+
+        showSuccess(translations.experience_added || "Experiencia agregada correctamente");
+
+    }
+
+
+
+    saveAndRender();
+
+    resetEditingState('experience');
+
 }
 
+
+
+
+
 function renderExperienceList() {
+
+
+
+
+
     const list = $("#experienceList")
+
+
+
+
+
     list.empty()
 
+
+
+
+
+
+
+
+
+
+
     if (cvData.experience.length === 0) {
-        list.html('<p class="text-muted text-center">No hay experiencias agregadas</p>')
+
+
+
+
+
+        list.html(`<p class="text-muted text-center">${translations.no_experience_message || 'No hay experiencias agregadas'}</p>`)
+
+
+
+
+
         return
+
+
+
+
+
     }
 
+
+
+
+
+
+
+
+
+
+
     cvData.experience.forEach((exp) => {
+
+
+
+
+
         const item = $(`
+
+
+
+
+
             <div class="list-item">
-                <button class="btn btn-danger btn-sm btn-remove-item" data-type="experience" data-id="${exp.id}" data-title="Experiencia">
-                    <i class="fas fa-trash"></i>
-                </button>
-                <h6>${exp.position}</h6>
-                <p><strong>${exp.company}</strong></p>
-                <p><small>${formatDate(exp.startDate)} - ${exp.endDate === "Presente" ? "Presente" : formatDate(exp.endDate)}</small></p>
-                ${exp.description ? `<p><small>${exp.description}</small></p>` : ""}
+
+
+
+
+
+                <div class="list-item-content">
+
+
+
+
+
+                    <h6>${exp.position}</h6>
+
+
+
+
+
+                    <p><strong>${exp.company}</strong></p>
+
+
+
+
+
+                    <p><small>${formatDate(exp.startDate)} - ${exp.endDate === "Presente" ? (translations.cv_present || "Presente") : formatDate(exp.endDate)}</small></p>
+
+
+
+
+
+                    ${exp.description ? `<p><small>${exp.description}</small></p>` : ""}
+
+
+
+
+
+                </div>
+
+
+
+
+
+                <div class="item-actions">
+
+
+
+
+
+                    <button class="btn btn-outline-primary btn-sm btn-edit-item" data-type="experience" data-id="${exp.id}">
+
+
+
+
+
+                        <i class="fas fa-pencil-alt"></i>
+
+
+
+
+
+                    </button>
+
+
+
+
+
+                    <button class="btn btn-outline-danger btn-sm btn-remove-item" data-type="experience" data-id="${exp.id}" data-title="${translations.item_type_experience || 'Experiencia'}">
+
+
+
+
+
+                        <i class="fas fa-trash"></i>
+
+
+
+
+
+                    </button>
+
+
+
+
+
+                </div>
+
+
+
+
+
             </div>
+
+
+
+
+
         `)
+
+
+
+
+
         list.append(item)
+
+
+
+
+
     })
+
+
+
+
+
 }
 
 // --- Educación ---
 
 function addEducation() {
-    const degree = $("#eduDegree").val().trim()
-    const institution = $("#eduInstitution").val().trim()
-    const startDate = $("#eduStartDate").val()
-    const endDate = $("#eduEndDate").val()
-    const current = $("#eduCurrent").is(":checked")
+    const degree = $("#eduDegree").val().trim();
+    const institution = $("#eduInstitution").val().trim();
+    const startDate = $("#eduStartDate").val();
+    const endDate = $("#eduEndDate").val();
+    const current = $("#eduCurrent").is(":checked");
 
     if (!degree || !institution || !startDate) {
-        showError("Por favor completa los campos obligatorios (Título, Institución, Fecha Inicio)")
-        return
+        showError(`${translations.error_fields_required || "Por favor completa los campos obligatorios"} (Título, Institución, Fecha Inicio)`);
+        return;
     }
 
     if (!current && !endDate) {
-        showError("Por favor indica la fecha de fin o marca como estudiando actualmente")
-        return
+        showError(translations.error_end_date_required || "Por favor indica la fecha de fin o marca como estudiando actualmente");
+        return;
     }
 
-    cvData.education.push({
-        id: Date.now(),
+    const newEducation = {
+        id: editingState.id && editingState.type === 'education' ? editingState.id : Date.now(),
         degree,
         institution,
         startDate,
         endDate: current ? "Presente" : endDate,
-    })
+    };
 
-    saveAndRender()
-    $("#eduDegree, #eduInstitution, #eduStartDate, #eduEndDate").val("")
-    $("#eduCurrent").prop("checked", false).trigger("change")
-    showSuccess("Educación agregada correctamente")
+    if (editingState.id && editingState.type === 'education') {
+        const index = cvData.education.findIndex(item => item.id === editingState.id);
+        if (index > -1) {
+            cvData.education[index] = newEducation;
+            showSuccess(translations.education_updated || "Educación actualizada correctamente");
+        }
+    } else {
+        cvData.education.push(newEducation);
+        showSuccess(translations.education_added || "Educación agregada correctamente");
+    }
+
+    saveAndRender();
+    resetEditingState('education');
 }
+
 
 function renderEducationList() {
     const list = $("#educationList")
     list.empty()
 
     if (cvData.education.length === 0) {
-        list.html('<p class="text-muted text-center">No hay educación agregada</p>')
+        list.html(`<p class="text-muted text-center">${translations.no_education_message || 'No hay educación agregada'}</p>`)
         return
     }
 
     cvData.education.forEach((edu) => {
         const item = $(`
             <div class="list-item">
-                <button class="btn btn-danger btn-sm btn-remove-item" data-type="education" data-id="${edu.id}" data-title="Educación">
-                    <i class="fas fa-trash"></i>
-                </button>
-                <h6>${edu.degree}</h6>
-                <p><strong>${edu.institution}</strong></p>
-                <p><small>${formatDate(edu.startDate)} - ${edu.endDate === "Presente" ? "Presente" : formatDate(edu.endDate)}</small></p>
+                <div class="list-item-content">
+                    <h6>${edu.degree}</h6>
+                    <p><strong>${edu.institution}</strong></p>
+                    <p><small>${formatDate(edu.startDate)} - ${edu.endDate === "Presente" ? (translations.cv_present || "Presente") : formatDate(edu.endDate)}</small></p>
+                </div>
+                <div class="item-actions">
+                    <button class="btn btn-outline-primary btn-sm btn-edit-item" data-type="education" data-id="${edu.id}">
+                        <i class="fas fa-pencil-alt"></i>
+                    </button>
+                    <button class="btn btn-outline-danger btn-sm btn-remove-item" data-type="education" data-id="${edu.id}" data-title="${translations.item_type_education || 'Educación'}">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
             </div>
         `)
         list.append(item)
@@ -504,37 +922,60 @@ function renderEducationList() {
 // --- Idiomas ---
 
 function addLanguage() {
-    const name = $("#langName").val().trim()
-    const level = $("#langLevel").val()
+    const name = $("#langName").val().trim();
+    const level = $("#langLevel").val();
 
     if (!name || !level) {
-        showError("Por favor completa todos los campos")
-        return
+        showError(translations.error_fields_required || "Por favor completa todos los campos");
+        return;
     }
 
-    cvData.languages.push({ id: Date.now(), name, level })
-    saveAndRender()
-    $("#langName, #langLevel").val("")
-    showSuccess("Idioma agregado correctamente")
+    const newLanguage = {
+        id: editingState.id && editingState.type === 'languages' ? editingState.id : Date.now(),
+        name,
+        level
+    };
+
+    if (editingState.id && editingState.type === 'languages') {
+        const index = cvData.languages.findIndex(item => item.id === editingState.id);
+        if (index > -1) {
+            cvData.languages[index] = newLanguage;
+            showSuccess(translations.language_updated || "Idioma actualizado correctamente");
+        }
+    } else {
+        cvData.languages.push(newLanguage);
+        showSuccess(translations.language_added || "Idioma agregado correctamente");
+    }
+
+    saveAndRender();
+    resetEditingState('languages');
 }
+
 
 function renderLanguagesList() {
     const list = $("#languagesList")
     list.empty()
 
     if (cvData.languages.length === 0) {
-        list.html('<p class="text-muted text-center">No hay idiomas agregados</p>')
+        list.html(`<p class="text-muted text-center">${translations.no_languages_message || 'No hay idiomas agregados'}</p>`)
         return
     }
 
     cvData.languages.forEach((lang) => {
         const item = $(`
             <div class="list-item">
-                <button class="btn btn-danger btn-sm btn-remove-item" data-type="languages" data-id="${lang.id}" data-title="Idioma">
-                    <i class="fas fa-trash"></i>
-                </button>
-                <h6>${lang.name}</h6>
-                <p><strong>Nivel:</strong> ${lang.level}</p>
+                <div class="list-item-content">
+                    <h6>${lang.name}</h6>
+                    <p><strong>${translations.cv_level || 'Nivel'}:</strong> ${lang.level}</p>
+                </div>
+                <div class="item-actions">
+                    <button class="btn btn-outline-primary btn-sm btn-edit-item" data-type="languages" data-id="${lang.id}">
+                        <i class="fas fa-pencil-alt"></i>
+                    </button>
+                    <button class="btn btn-outline-danger btn-sm btn-remove-item" data-type="languages" data-id="${lang.id}" data-title="${translations.item_type_language || 'Idioma'}">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
             </div>
         `)
         list.append(item)
@@ -544,41 +985,66 @@ function renderLanguagesList() {
 // --- Certificaciones ---
 
 function addCertification() {
-    const name = $("#certName").val().trim()
-    const organization = $("#certOrg").val().trim()
-    const date = $("#certDate").val()
-    const url = $("#certUrl").val().trim()
+    const name = $("#certName").val().trim();
+    const organization = $("#certOrg").val().trim();
+    const date = $("#certDate").val();
+    const url = $("#certUrl").val().trim();
 
     if (!name || !organization || !date) {
-        showError("Por favor completa los campos obligatorios (Nombre, Organización, Fecha)")
-        return
+        showError(`${translations.error_fields_required || "Por favor completa los campos obligatorios"} (Nombre, Organización, Fecha)`);
+        return;
     }
 
-    cvData.certifications.push({ id: Date.now(), name, organization, date, url })
-    saveAndRender()
-    $("#certName, #certOrg, #certDate, #certUrl").val("")
-    showSuccess("Certificación agregada correctamente")
+    const newCertification = {
+        id: editingState.id && editingState.type === 'certifications' ? editingState.id : Date.now(),
+        name,
+        organization,
+        date,
+        url
+    };
+
+    if (editingState.id && editingState.type === 'certifications') {
+        const index = cvData.certifications.findIndex(item => item.id === editingState.id);
+        if (index > -1) {
+            cvData.certifications[index] = newCertification;
+            showSuccess(translations.certification_updated || "Certificación actualizada correctamente");
+        }
+    } else {
+        cvData.certifications.push(newCertification);
+        showSuccess(translations.certification_added || "Certificación agregada correctamente");
+    }
+
+    saveAndRender();
+    resetEditingState('certifications');
 }
+
 
 function renderCertificationsList() {
     const list = $("#certificationsList")
     list.empty()
 
     if (cvData.certifications.length === 0) {
-        list.html('<p class="text-muted text-center">No hay certificaciones agregadas</p>')
+        list.html(`<p class="text-muted text-center">${translations.no_certifications_message || 'No hay certificaciones agregadas'}</p>`)
         return
     }
 
     cvData.certifications.forEach((cert) => {
         const item = $(`
             <div class="list-item">
-                <button class="btn btn-danger btn-sm btn-remove-item" data-type="certifications" data-id="${cert.id}" data-title="Certificación">
-                    <i class="fas fa-trash"></i>
-                </button>
-                <h6>${cert.name}</h6>
-                <p><strong>${cert.organization}</strong></p>
-                <p><small>${formatDate(cert.date)}</small></p>
-                ${cert.url ? `<p><small><a href="${cert.url}" target="_blank" rel="noopener noreferrer">Ver certificado</a></small></p>` : ""}
+                <div class="list-item-content">
+                    <h6>${cert.name}</h6>
+                    <p><strong>${cert.organization}</strong></p>
+                    <p><small>${formatDate(cert.date)}</small></p>
+                    ${cert.url ? `<p><small><a href="${cert.url}" target="_blank" rel="noopener noreferrer">${translations.cv_view_certificate || 'Ver certificado'}</a></small></p>` : ""}
+                </div>
+                <div class="item-actions">
+                    <button class="btn btn-outline-primary btn-sm btn-edit-item" data-type="certifications" data-id="${cert.id}">
+                        <i class="fas fa-pencil-alt"></i>
+                    </button>
+                    <button class="btn btn-outline-danger btn-sm btn-remove-item" data-type="certifications" data-id="${cert.id}" data-title="${translations.item_type_certification || 'Certificación'}">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
             </div>
         `)
         list.append(item)
@@ -589,19 +1055,19 @@ function renderCertificationsList() {
 
 function removeItem(type, id, title) {
     Swal.fire({
-        title: `¿Eliminar ${title}?`,
-        text: "Esta acción no se puede deshacer",
+        title: (translations.confirm_delete_title || "¿Eliminar {item}?").replace("{item}", title),
+        text: translations.confirm_delete_text || "Esta acción no se puede deshacer",
         icon: "warning",
         showCancelButton: true,
         confirmButtonColor: "#ef4444",
         cancelButtonColor: "#64748b",
-        confirmButtonText: "Sí, eliminar",
-        cancelButtonText: "Cancelar",
+        confirmButtonText: translations.confirm_button_delete || "Sí, eliminar",
+        cancelButtonText: translations.cancel_button || "Cancelar",
     }).then((result) => {
         if (result.isConfirmed) {
             cvData[type] = cvData[type].filter((item) => item.id !== id)
             saveAndRender()
-            showSuccess(`${title} eliminado/a correctamente`)
+            showSuccess((translations.item_deleted || "{item} eliminado/a correctamente").replace("{item}", title))
         }
     })
 }
@@ -623,7 +1089,7 @@ function generateMinimalCV() {
 
     // Header
     html += '<div class="cv-header">'
-    html += `<div class="cv-name">${(cvData.personal.fullName || "Tu Nombre").toUpperCase()}</div>`
+    html += `<div class="cv-name">${(cvData.personal.fullName || (translations.cv_your_name || "Tu Nombre")).toUpperCase()}</div>`
     if (cvData.personal.position) {
         html += `<div class="cv-position">${cvData.personal.position}</div>`
     }
@@ -643,7 +1109,7 @@ function generateMinimalCV() {
     // Resumen
     if (cvData.personal.summary) {
         html += '<div class="cv-section">'
-        html += '<div class="cv-section-title">Resumen Profesional</div>'
+        html += `<div class="cv-section-title">${translations.cv_professional_summary || 'Resumen Profesional'}</div>`
         html += `<p>${cvData.personal.summary}</p>`
         html += "</div>"
     }
@@ -651,12 +1117,12 @@ function generateMinimalCV() {
     // Experiencia
     if (cvData.experience.length > 0) {
         html += '<div class="cv-section">'
-        html += '<div class="cv-section-title">Experiencia Laboral</div>'
+        html += `<div class="cv-section-title">${translations.cv_work_experience || 'Experiencia Laboral'}</div>`
         cvData.experience.forEach((exp) => {
             html += '<div class="cv-item">'
             html += '<div class="cv-item-header">'
             html += `<div><div class="cv-item-title">${exp.position}</div><div class="cv-item-subtitle">${exp.company}</div></div>`
-            html += `<div class="cv-item-date">${formatDate(exp.startDate)} - ${exp.endDate === "Presente" ? "Presente" : formatDate(exp.endDate)}</div>`
+            html += `<div class="cv-item-date">${formatDate(exp.startDate)} - ${exp.endDate === "Presente" ? (translations.cv_present || "Presente") : formatDate(exp.endDate)}</div>`
             html += "</div>"
             if (exp.description) html += `<div class="cv-item-description">${exp.description}</div>`
             html += "</div>"
@@ -667,12 +1133,12 @@ function generateMinimalCV() {
     // Educación
     if (cvData.education.length > 0) {
         html += '<div class="cv-section">'
-        html += '<div class="cv-section-title">Educación</div>'
+        html += `<div class="cv-section-title">${translations.cv_education || 'Educación'}</div>`
         cvData.education.forEach((edu) => {
             html += '<div class="cv-item">'
             html += '<div class="cv-item-header">'
             html += `<div><div class="cv-item-title">${edu.degree}</div><div class="cv-item-subtitle">${edu.institution}</div></div>`
-            html += `<div class="cv-item-date">${formatDate(edu.startDate)} - ${edu.endDate === "Presente" ? "Presente" : formatDate(edu.endDate)}</div>`
+            html += `<div class="cv-item-date">${formatDate(edu.startDate)} - ${edu.endDate === "Presente" ? (translations.cv_present || "Presente") : formatDate(edu.endDate)}</div>`
             html += "</div></div>"
         })
         html += "</div>"
@@ -681,7 +1147,7 @@ function generateMinimalCV() {
     // Habilidades Técnicas
     if (cvData.technicalSkills.length > 0) {
         html += '<div class="cv-section">'
-        html += '<div class="cv-section-title">Habilidades Técnicas</div>'
+        html += `<div class="cv-section-title">${translations.cv_technical_skills || 'Habilidades Técnicas'}</div>`
         html += '<div class="cv-skills">'
         cvData.technicalSkills.forEach((skill) => {
             html += `<span class="cv-skill-tag">${skill}</span>`
@@ -692,7 +1158,7 @@ function generateMinimalCV() {
     // Habilidades Blandas
     if (cvData.softSkills.length > 0) {
         html += '<div class="cv-section">'
-        html += '<div class="cv-section-title">Habilidades Blandas</div>'
+        html += `<div class="cv-section-title">${translations.cv_soft_skills || 'Habilidades Blandas'}</div>`
         html += '<div class="cv-skills">'
         cvData.softSkills.forEach((skill) => {
             html += `<span class="cv-skill-tag">${skill}</span>`
@@ -703,7 +1169,7 @@ function generateMinimalCV() {
     // Idiomas
     if (cvData.languages.length > 0) {
         html += '<div class="cv-section">'
-        html += '<div class="cv-section-title">Idiomas</div>'
+        html += `<div class="cv-section-title">${translations.cv_languages || 'Idiomas'}</div>`
         cvData.languages.forEach((lang) => {
             html += `<div class="cv-item"><strong>${lang.name}:</strong> ${lang.level}</div>`
         })
@@ -713,7 +1179,7 @@ function generateMinimalCV() {
     // Certificaciones
     if (cvData.certifications.length > 0) {
         html += '<div class="cv-section">'
-        html += '<div class="cv-section-title">Certificaciones</div>'
+        html += `<div class="cv-section-title">${translations.cv_certifications || 'Certificaciones'}</div>`
         cvData.certifications.forEach((cert) => {
             html += '<div class="cv-item">'
             html += `<div class="cv-item-title">${cert.name}</div>`
@@ -733,7 +1199,7 @@ function generateDashboardCV() {
 
     // Sidebar
     html += '<div class="cv-sidebar">'
-    html += `<div class="cv-name">${(cvData.personal.fullName || "Tu Nombre").toUpperCase()}</div>`
+    html += `<div class="cv-name">${(cvData.personal.fullName || (translations.cv_your_name || "Tu Nombre")).toUpperCase()}</div>`
     if (cvData.personal.position) {
         html += `<div class="cv-position">${cvData.personal.position}</div>`
     }
@@ -755,7 +1221,7 @@ function generateDashboardCV() {
     // Habilidades en sidebar
     if (cvData.technicalSkills.length > 0) {
         html += '<div class="cv-section">'
-        html += '<div class="cv-section-title">Habilidades Técnicas</div>'
+        html += `<div class="cv-section-title">${translations.cv_technical_skills || 'Habilidades Técnicas'}</div>`
         cvData.technicalSkills.forEach((skill) => {
             html += `<span class="cv-skill-tag">${skill}</span>`
         })
@@ -764,7 +1230,7 @@ function generateDashboardCV() {
 
     if (cvData.softSkills.length > 0) {
         html += '<div class="cv-section">'
-        html += '<div class="cv-section-title">Habilidades Blandas</div>'
+        html += `<div class="cv-section-title">${translations.cv_soft_skills || 'Habilidades Blandas'}</div>`
         cvData.softSkills.forEach((skill) => {
             html += `<span class="cv-skill-tag">${skill}</span>`
         })
@@ -774,7 +1240,7 @@ function generateDashboardCV() {
     // Idiomas en sidebar
     if (cvData.languages.length > 0) {
         html += '<div class="cv-section">'
-        html += '<div class="cv-section-title">Idiomas</div>'
+        html += `<div class="cv-section-title">${translations.cv_languages || 'Idiomas'}</div>`
         cvData.languages.forEach((lang) => {
             html += `<div style="margin-bottom: 8px;"><strong>${lang.name}</strong><br><small>${lang.level}</small></div>`
         })
@@ -789,7 +1255,7 @@ function generateDashboardCV() {
     // Resumen
     if (cvData.personal.summary) {
         html += '<div class="cv-section">'
-        html += '<div class="cv-section-title">Resumen Profesional</div>'
+        html += `<div class="cv-section-title">${translations.cv_professional_summary || 'Resumen Profesional'}</div>`
         html += `<p>${cvData.personal.summary}</p>`
         html += "</div>"
     }
@@ -797,12 +1263,12 @@ function generateDashboardCV() {
     // Experiencia
     if (cvData.experience.length > 0) {
         html += '<div class="cv-section">'
-        html += '<div class="cv-section-title">Experiencia Laboral</div>'
+        html += `<div class="cv-section-title">${translations.cv_work_experience || 'Experiencia Laboral'}</div>`
         cvData.experience.forEach((exp) => {
             html += '<div class="cv-item">'
             html += '<div class="cv-item-header">'
             html += `<div><div class="cv-item-title">${exp.position}</div><div class="cv-item-subtitle">${exp.company}</div></div>`
-            html += `<div class="cv-item-date">${formatDate(exp.startDate)} - ${exp.endDate === "Presente" ? "Presente" : formatDate(exp.endDate)}</div>`
+            html += `<div class="cv-item-date">${formatDate(exp.startDate)} - ${exp.endDate === "Presente" ? (translations.cv_present || "Presente") : formatDate(exp.endDate)}</div>`
             html += "</div>"
             if (exp.description) html += `<div class="cv-item-description">${exp.description}</div>`
             html += "</div>"
@@ -813,12 +1279,12 @@ function generateDashboardCV() {
     // Educación
     if (cvData.education.length > 0) {
         html += '<div class="cv-section">'
-        html += '<div class="cv-section-title">Educación</div>'
+        html += `<div class="cv-section-title">${translations.cv_education || 'Educación'}</div>`
         cvData.education.forEach((edu) => {
             html += '<div class="cv-item">'
             html += '<div class="cv-item-header">'
             html += `<div><div class="cv-item-title">${edu.degree}</div><div class="cv-item-subtitle">${edu.institution}</div></div>`
-            html += `<div class="cv-item-date">${formatDate(edu.startDate)} - ${edu.endDate === "Presente" ? "Presente" : formatDate(edu.endDate)}</div>`
+            html += `<div class="cv-item-date">${formatDate(edu.startDate)} - ${edu.endDate === "Presente" ? (translations.cv_present || "Presente") : formatDate(edu.endDate)}</div>`
             html += "</div></div>"
         })
         html += "</div>"
@@ -827,7 +1293,7 @@ function generateDashboardCV() {
     // Certificaciones
     if (cvData.certifications.length > 0) {
         html += '<div class="cv-section">'
-        html += '<div class="cv-section-title">Certificaciones</div>'
+        html += `<div class="cv-section-title">${translations.cv_certifications || 'Certificaciones'}</div>`
         cvData.certifications.forEach((cert) => {
             html += '<div class="cv-item">'
             html += `<div class="cv-item-title">${cert.name}</div>`
@@ -843,10 +1309,10 @@ function generateDashboardCV() {
 
 // Formatear fecha
 function formatDate(dateString) {
-    if (!dateString || dateString === "Presente") return dateString
-    const [year, month] = dateString.split("-")
-    const months = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"]
-    return `${months[Number.parseInt(month) - 1]} ${year}`
+    if (!dateString || dateString === "Presente") return (dateString === "Presente" ? (translations.cv_present || "Presente") : dateString);
+    const [year, month] = dateString.split("-");
+    const months = translations.months || ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+    return `${months[Number.parseInt(month) - 1]} ${year}`;
 }
 
 function updateProgressBar() {
@@ -882,34 +1348,47 @@ function updateProgressBar() {
     if (percentage === 100) {
         downloadBtn.prop("disabled", false).removeClass("btn-secondary").addClass("btn-success");
         progressBar.addClass("bg-success");
-        downloadBtn.attr("title", "¡Tu CV está listo para descargar!");
+        downloadBtn.attr("title", translations.cv_ready_to_download_title || "¡Tu CV está listo para descargar!");
 
     } else {
         downloadBtn.prop("disabled", true).removeClass("btn-success").addClass("btn-secondary");
         progressBar.removeClass("bg-success");
-        downloadBtn.attr("title", `Completa el ${100 - percentage}% restante de tu CV para descargar.`);
+        const remaining = 100 - percentage;
+        downloadBtn.attr("title", (translations.complete_cv_to_download_title || "Completa el {percentage}% restante de tu CV para descargar.").replace("{percentage}", remaining));
     }
 }
 
 // Descargar PDF
 async function downloadPDF() {
     if (!cvData.personal.fullName) {
-        showError("Por favor completa al menos tu nombre antes de descargar el CV.");
+        showError(translations.error_download_pdf_name || "Por favor completa al menos tu nombre antes de descargar el CV.");
         return;
     }
 
     const button = $("#downloadPDF");
     const originalText = button.html();
-    button.html('<span class="spinner-border spinner-border-sm me-2"></span>Generando PDF...').prop("disabled", true);
+    button.html(`<span class="spinner-border spinner-border-sm me-2"></span>${translations.generating_pdf || 'Generando PDF...'}`).prop("disabled", true);
+
+    const body = $("body");
+    const wasInFormView = body.hasClass("view-form");
+
+    // Forzar temporalmente la vista de preview para asegurar que el elemento es visible y renderizado
+    if (wasInFormView) {
+        body.removeClass("view-form").addClass("view-preview");
+    }
+
+    // Pequeña demora para permitir que el navegador renderice la vista previa
+    await new Promise(resolve => setTimeout(resolve, 100));
 
     try {
         const element = document.getElementById("cvPreview");
-
         const canvas = await html2canvas(element, {
             scale: 3,
             useCORS: true,
             logging: false,
-            backgroundColor: "#ffffff"
+            backgroundColor: "#ffffff",
+            windowWidth: element.scrollWidth,
+            windowHeight: element.scrollHeight
         });
 
         const imgData = canvas.toDataURL("image/png", 1.0);
@@ -920,52 +1399,57 @@ async function downloadPDF() {
             compress: true
         });
 
+        const margin = 10; // 10mm de margen
         const pdfWidth = pdf.internal.pageSize.getWidth();
         const pdfHeight = pdf.internal.pageSize.getHeight();
-        const canvasWidth = canvas.width;
-        const canvasHeight = canvas.height;
-        const ratio = canvasWidth / canvasHeight;
+        const availableWidth = pdfWidth - (margin * 2);
+        const availableHeight = pdfHeight - (margin * 2);
 
-        const imgWidth = pdfWidth;
-        const imgHeight = imgWidth / ratio;
+        const canvasAspectRatio = canvas.width / canvas.height;
 
-        let heightLeft = imgHeight;
-        let position = 0;
+        let imgWidth = availableWidth;
+        let imgHeight = imgWidth / canvasAspectRatio;
 
-        pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-        heightLeft -= pdfHeight;
-
-        while (heightLeft > 0) {
-            position = heightLeft - imgHeight;
-            pdf.addPage();
-            pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-            heightLeft -= pdfHeight;
+        // Si la imagen es más alta que el área disponible, la escala para que quepa
+        if (imgHeight > availableHeight) {
+            imgHeight = availableHeight;
+            imgWidth = imgHeight * canvasAspectRatio;
         }
+
+        const xOffset = margin + (availableWidth - imgWidth) / 2;
+        const yOffset = margin + (availableHeight - imgHeight) / 2;
+
+        pdf.addImage(imgData, "PNG", xOffset, yOffset, imgWidth, imgHeight);
 
         const fileName = `CV_${cvData.personal.fullName.replace(/\s+/g, "_") || "CV"}.pdf`;
         pdf.save(fileName);
 
-        showSuccess("Tu CV ha sido descargado correctamente.");
+        showSuccess(translations.pdf_downloaded || "Tu CV ha sido descargado correctamente.");
 
     } catch (error) {
         console.error("Error al generar PDF:", error);
-        showError("Hubo un error al generar el PDF. Inténtalo de nuevo.");
+        showError(translations.error_generating_pdf || "Hubo un error al generar el PDF. Inténtalo de nuevo.");
     } finally {
+        // Restaurar la vista original si fue cambiada
+        if (wasInFormView) {
+            body.removeClass("view-preview").addClass("view-form");
+        }
         button.html(originalText).prop("disabled", false);
+        updateProgressBar();
     }
 }
 
 // Limpiar todo
 function clearAll() {
     Swal.fire({
-        title: "¿Estás seguro?",
-        text: "Se eliminarán todos los datos del CV",
+        title: translations.confirm_clear_all_title || "¿Estás seguro?",
+        text: translations.confirm_clear_all_text || "Se eliminarán todos los datos del CV",
         icon: "warning",
         showCancelButton: true,
         confirmButtonColor: "#ef4444",
         cancelButtonColor: "#64748b",
-        confirmButtonText: "Sí, limpiar todo",
-        cancelButtonText: "Cancelar",
+        confirmButtonText: translations.confirm_button_clear_all || "Sí, limpiar todo",
+        cancelButtonText: translations.cancel_button || "Cancelar",
     }).then((result) => {
         if (result.isConfirmed) {
             cvData = {
@@ -1009,8 +1493,8 @@ function clearAll() {
 
             Swal.fire({
                 icon: "success",
-                title: "Limpiado",
-                text: "Todos los datos han sido eliminados",
+                title: translations.all_data_cleared_title || "Limpiado",
+                text: translations.all_data_cleared_text || "Todos los datos han sido eliminados",
                 timer: 1500,
                 showConfirmButton: false,
             })
