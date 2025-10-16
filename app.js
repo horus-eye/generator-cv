@@ -315,7 +315,7 @@ function setupEventListeners() {
     $("#searchTechnical, #searchSoft").on("input", function () {
         const searchTerm = $(this).val().toLowerCase();
         const gridId = $(this).attr("id") === "searchTechnical" ? "#technicalSkillsGrid" : "#softSkillsGrid";
-        
+
         $(`${gridId} .skill-item`).each(function () {
             const skillName = $(this).data("skill").toLowerCase();
             $(this).toggle(skillName.includes(searchTerm));
@@ -328,13 +328,13 @@ function setupEventListeners() {
     $("#clearAll").on("click", clearAll);
 
     // Mobile navigation
-    $("#mobile-nav-form").on("click", function() {
+    $("#mobile-nav-form").on("click", function () {
         $("body").removeClass("view-preview").addClass("view-form");
         $("#mobile-nav-preview").removeClass("active");
         $(this).addClass("active");
     });
 
-    $("#mobile-nav-preview").on("click", function() {
+    $("#mobile-nav-preview").on("click", function () {
         $("body").removeClass("view-form").addClass("view-preview");
         $("#mobile-nav-form").removeClass("active");
         $(this).addClass("active");
@@ -895,13 +895,13 @@ async function downloadPDF() {
 
     try {
         const element = document.getElementById("cvPreview");
-        
+
         element.style.display = 'none';
         element.offsetHeight; // no-op
         element.style.display = '';
 
         const canvas = await html2canvas(element, {
-            scale: 3, 
+            scale: 3,
             useCORS: true,
             logging: false,
             backgroundColor: "#ffffff",
@@ -924,7 +924,7 @@ async function downloadPDF() {
         const canvasWidth = canvas.width;
         const canvasHeight = canvas.height;
         const ratio = canvasWidth / canvasHeight;
-        
+
         const imgWidth = pdfWidth;
         const imgHeight = imgWidth / ratio;
 
